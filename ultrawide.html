@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=2560, height=1080">
+  <title>Haze — Ultrawide Overlay</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html, body {
+      width: 2560px;
+      height: 1080px;
+    }
+
+    #particle-canvas {
+      width: 2560px;
+      height: 1080px;
+    }
+
+    /* ── Ultrawide Layout ──────────────────────── */
+
+    #ultrawide-scene {
+      position: absolute;
+      inset: 0;
+      width: 2560px;
+      height: 1080px;
+    }
+
+    /* Now Playing — top left */
+    #ultrawide-scene .music-widget {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      width: 380px;
+      height: 110px;
+    }
+
+    /* Chat box — bottom center area */
+    #ultrawide-scene .chat-box {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1600px;
+      height: 280px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #ultrawide-scene .chat-box .chat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    #ultrawide-scene .chat-box .chat-area {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Chat iframe fills this area */
+    #chat-embed {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 4px;
+      background: rgba(10, 10, 15, 0.5);
+    }
+
+    /* Camera — bottom right, protrudes above chat box */
+    #ultrawide-scene .camera-frame {
+      position: absolute;
+      bottom: 0;
+      right: 40px;
+      width: 336px;
+      height: 336px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="particle-canvas"></canvas>
+
+  <div id="ultrawide-scene">
+
+    <!-- Now Playing — top left -->
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="music-text">
+        <div class="now-playing-label">
+          <span class="eq-icon">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </span>
+          Now Playing
+        </div>
+        <div class="song-title" id="song-title">No track playing.. recommend one in the chat!</div>
+        <div class="song-artist" id="song-artist">—</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="song-progress"></div>
+        </div>
+      </div>
+      <div class="album-art-wrap">
+        <img class="album-art" id="album-art" src="" alt="Album Art">
+      </div>
+    </div>
+
+    <!-- Chat box — bottom center -->
+    <div class="chat-box fade-in">
+      <div class="chat-label">Chat</div>
+      <div class="chat-area">
+        <!-- Replace with your chat embed URL (e.g. Twitch chat, Restream, etc.) -->
+        <iframe
+          id="chat-embed"
+          src=""
+          allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <!-- Camera — bottom right, protrudes above chat -->
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-glow-pulse"></div>
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TwitchAlerts injects here -->
+  <div id="alert-box"></div>
+
+  <script src="config.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="js/twitch-api.js"></script>
+  <script src="js/lastfm-api.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>
