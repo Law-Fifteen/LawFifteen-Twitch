@@ -1,2 +1,1 @@
-# config.js is committed so API keys work on the live site.
-# These are client-side keys (not server secrets).
+firebase-config.js
