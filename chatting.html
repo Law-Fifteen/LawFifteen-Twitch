@@ -22,6 +22,34 @@
 
   <canvas id="particle-canvas"></canvas>
 
+  <!-- Control Bar — hover top edge to reveal -->
+  <div id="control-bar">
+    <div class="control-inner">
+      <div class="control-group">
+        <span class="control-label">Scene</span>
+        <button class="ctrl-btn" data-scene="gameplay" onclick="switchScene('gameplay')">Gameplay</button>
+        <button class="ctrl-btn active" data-scene="chatting" onclick="switchScene('chatting')">Chatting</button>
+        <button class="ctrl-btn" data-scene="ultrawide" onclick="switchScene('ultrawide')">Ultrawide</button>
+      </div>
+      <div class="control-divider"></div>
+      <div class="control-group">
+        <span class="control-label">Toggle</span>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="music" onchange="applyToggle('music', this.checked)"><span>Now Playing</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="camera" onchange="applyToggle('camera', this.checked)"><span>Camera</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="bokeh" onchange="applyToggle('bokeh', this.checked)"><span>Bokeh</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="sweep" onchange="applyToggle('sweep', this.checked)"><span>Sweep</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="progress" onchange="applyToggle('progress', this.checked)"><span>Progress</span></label>
+      </div>
+      <div class="control-divider"></div>
+      <div class="control-group">
+        <span class="control-label">Presets</span>
+        <button class="ctrl-btn small" onclick="applyPreset('full')">Full</button>
+        <button class="ctrl-btn small" onclick="applyPreset('minimal')">Minimal</button>
+        <button class="ctrl-btn small" onclick="applyPreset('off')">Off</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Just Chatting Scene: Camera (left) + Events Panel (right) + Music (bottom-left) -->
   <div id="chatting-scene">
 
@@ -81,9 +109,6 @@
   <div id="alert-box"></div>
 
   <script src="config.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
   <script src="js/twitch-api.js"></script>
   <script src="js/lastfm-api.js"></script>
   <script src="js/particles.js"></script>

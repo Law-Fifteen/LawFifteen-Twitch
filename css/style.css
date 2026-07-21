@@ -527,3 +527,121 @@ body {
   font-style: italic;
   padding: 8px 0;
 }
+
+/* ============================================
+   CONTROL BAR — Hover top edge to reveal
+   ============================================ */
+
+#control-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1920px;
+  height: 44px;
+  z-index: 9999;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+#control-bar:hover,
+#control-bar.visible {
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Invisible trigger zone along top edge */
+#control-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(124, 92, 191, 0.2), transparent);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.control-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 20px;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(42, 42, 58, 0.6);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.control-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  opacity: 0.5;
+}
+
+/* Scene buttons */
+.ctrl-btn {
+  padding: 5px 12px;
+  background: rgba(42, 42, 58, 0.5);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ctrl-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.ctrl-btn.active {
+  background: rgba(124, 92, 191, 0.2);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.ctrl-btn.small {
+  padding: 3px 8px;
+  font-size: 10px;
+}
+
+/* Toggle checkboxes */
+.ctrl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.ctrl-toggle:hover {
+  color: var(--text);
+}
+
+.ctrl-toggle input {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}

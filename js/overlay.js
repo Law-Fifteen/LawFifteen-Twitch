@@ -1,6 +1,6 @@
 /**
  * Haze Overlay — Core Logic
- * Handles polling, rendering, scene detection, and control panel integration.
+ * Handles polling, rendering, effects, and inline control bar.
  */
 
 // ── Helpers ──────────────────────────────────────────
@@ -54,45 +54,65 @@ let trackStartTime = 0;
 let trackEstimatedDuration = 210000;
 let progressInterval = null;
 let sweepEnabled = true;
-let db = null;
-let stateRef = null;
 
-// ── Control Panel (Firebase Realtime Database) ───────
+// ── Control Bar ──────────────────────────────────────
 
-function initControlPanel() {
-  if (typeof firebase === "undefined" || typeof FIREBASE_CONFIG === "undefined") {
-    console.warn("Firebase not loaded — control panel disabled. Using localStorage fallback.");
-    initLocalControl();
-    return;
-  }
-
-  firebase.initializeApp(FIREBASE_CONFIG);
-  db = firebase.database();
-  stateRef = db.ref("haze-state");
-
-  // Listen for state changes from control panel
-  stateRef.on("value", (snap) => {
-    const state = snap.val();
-    if (!state) return;
-
-    // Apply each toggle
-    Object.entries(state).forEach(([feature, enabled]) => {
-      if (feature === "scene") {
-        console.log("Scene switch requested:", enabled);
-        return;
-      }
-      applyToggle(feature, enabled);
-    });
-  });
-
-  console.log("Firebase control panel connected");
-}
-
-// Fallback for local-only use (no Firebase)
-function initLocalControl() {
+function initControlBar() {
+  // Restore saved toggle states
   ["music", "camera", "bokeh", "sweep", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
-    if (saved === "false") applyToggle(feature, false);
+    if (saved === "false") {
+      applyToggle(feature, false);
+      const toggle = document.querySelector(`[data-toggle="${feature}"]`);
+      if (toggle) toggle.checked = false;
+    }
+  });
+
+  // Mark active scene button
+  const scene = getActiveScene();
+  document.querySelectorAll(".ctrl-btn[data-scene]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.scene === scene);
+  });
+
+  // Show control bar briefly on load so user knows it's there
+  const bar = document.getElementById("control-bar");
+  if (bar) {
+    bar.classList.add("visible");
+    setTimeout(() => bar.classList.remove("visible"), 2500);
+  }
+}
+
+function getActiveScene() {
+  if (document.getElementById("gameplay-scene")) return "gameplay";
+  if (document.getElementById("chatting-scene")) return "chatting";
+  if (document.getElementById("ultrawide-scene")) return "ultrawide";
+  return "gameplay";
+}
+
+function switchScene(scene) {
+  // In OBS, scene switching is done by toggling Browser Source visibility.
+  // This function highlights the active button and saves preference.
+  document.querySelectorAll(".ctrl-btn[data-scene]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.scene === scene);
+  });
+  localStorage.setItem("haze-scene", scene);
+  console.log("Scene:", scene);
+}
+
+function applyPreset(name) {
+  const presets = {
+    full: { music: true, camera: true, bokeh: true, sweep: true, subs: true, follows: true, progress: true },
+    minimal: { music: true, camera: true, bokeh: false, sweep: false, subs: false, follows: false, progress: true },
+    off: { music: false, camera: false, bokeh: false, sweep: false, subs: false, follows: false, progress: false },
+  };
+
+  const preset = presets[name];
+  if (!preset) return;
+
+  Object.entries(preset).forEach(([feature, enabled]) => {
+    applyToggle(feature, enabled);
+    const toggle = document.querySelector(`[data-toggle="${feature}"]`);
+    if (toggle) toggle.checked = enabled;
   });
 }
 
@@ -104,10 +124,8 @@ function applyToggle(feature, enabled) {
       toggleElement("music-widget", enabled);
       break;
     case "camera":
-      toggleElement("camera", enabled);
       document.querySelectorAll(".camera-frame").forEach((el) => {
-        el.style.border = enabled ? "" : "2px solid transparent";
-        el.style.boxShadow = enabled ? "" : "none";
+        el.style.display = enabled ? "" : "none";
       });
       break;
     case "bokeh":
@@ -186,7 +204,6 @@ async function pollMusic() {
       trackStartTime = Date.now();
       startProgressAnimation(track.title, track.artist, track.image);
 
-      // Trigger sweep on song change
       if (sweepEnabled && hazeEffects?.triggerSweep) {
         hazeEffects.triggerSweep();
       }
@@ -232,10 +249,9 @@ function setupScrollText(el) {
   void el.offsetWidth;
 
   if (el.scrollWidth > el.clientWidth) {
-    // Calculate how far to scroll: text width minus container width, plus padding
     const overflow = el.scrollWidth - el.clientWidth;
     const scrollPx = overflow + 20;
-    const duration = Math.max(6, scrollPx / 30); // ~30px per second
+    const duration = Math.max(6, scrollPx / 30);
 
     el.style.setProperty("--scroll-distance", `-${scrollPx}px`);
     el.style.setProperty("--scroll-duration", `${duration}s`);
@@ -275,7 +291,7 @@ function updateMusicWidget(title, artist, imageUrl, isActive) {
   }
 }
 
-// ── Panel Visibility (CSS animation trigger) ─────────
+// ── Panel Visibility ─────────────────────────────────
 
 function markPanelsVisible() {
   document.querySelectorAll(".panel, .events-card, .music-widget, .camera-frame").forEach((el) => {
@@ -287,13 +303,11 @@ function markPanelsVisible() {
 
 function init() {
   markPanelsVisible();
-  initControlPanel();
+  initControlBar();
 
-  // Start effects system
   hazeEffects?.init();
 
   const isChatting = !!document.getElementById("chatting-scene");
-  const isGameplay = !!document.getElementById("gameplay-scene");
 
   pollMusic();
   setInterval(pollMusic, CONFIG.refreshIntervals.music);
@@ -311,7 +325,7 @@ function init() {
     });
   }, 100);
 
-  console.log("Haze overlay initialized \u2014", isChatting ? "Chatting Scene" : "Gameplay Scene");
+  console.log("Haze overlay initialized");
 }
 
 document.addEventListener("DOMContentLoaded", init);
