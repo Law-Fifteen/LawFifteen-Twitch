@@ -8,6 +8,8 @@
 </head>
 <body>
 
+  <canvas id="particle-canvas"></canvas>
+
   <!-- Gameplay Scene: Camera + Music (bottom-right) -->
   <div id="gameplay-scene">
     <div class="camera-frame fade-in" id="camera">
@@ -17,18 +19,23 @@
     </div>
 
     <div class="music-widget fade-in" id="music-widget">
-      <div class="now-playing-label">
-        <span class="eq-icon">
-          <span class="eq-bar"></span>
-          <span class="eq-bar"></span>
-          <span class="eq-bar"></span>
-        </span>
-        Now Playing
+      <div class="music-text">
+        <div class="now-playing-label">
+          <span class="eq-icon">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </span>
+          Now Playing
+        </div>
+        <div class="song-title" id="song-title">No track playing</div>
+        <div class="song-artist" id="song-artist">—</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="song-progress"></div>
+        </div>
       </div>
-      <div class="song-title" id="song-title">No track playing</div>
-      <div class="song-artist" id="song-artist">—</div>
-      <div class="progress-bar-track">
-        <div class="progress-bar-fill" id="song-progress"></div>
+      <div class="album-art-wrap">
+        <img class="album-art" id="album-art" src="" alt="Album Art">
       </div>
     </div>
   </div>
@@ -39,6 +46,7 @@
   <script src="config.js"></script>
   <script src="js/twitch-api.js"></script>
   <script src="js/lastfm-api.js"></script>
+  <script src="js/particles.js"></script>
   <script src="js/overlay.js"></script>
 </body>
 </html>

@@ -80,6 +80,7 @@ async function pollSubscribers() {
 // ── Music Widget (Last.fm integration) ───────────────
 
 let lastTrackTitle = "";
+let lastTrackImage = "";
 
 async function pollMusic() {
   if (!CONFIG.lastfm.apiKey || !CONFIG.lastfm.username) return;
@@ -88,31 +89,42 @@ async function pollMusic() {
     if (!track) return;
 
     // Only update DOM if track changed
-    if (track.title !== lastTrackTitle) {
+    if (track.title !== lastTrackTitle || track.image !== lastTrackImage) {
       lastTrackTitle = track.title;
-      updateMusicWidget(track.title, track.artist);
+      lastTrackImage = track.image;
+      updateMusicWidget(track.title, track.artist, track.image);
       console.log("Now playing:", track.artist, "-", track.title);
     }
 
     // Show "Not streaming" indicator if nothing is actively playing
     if (!track.isNowPlaying) {
-      updateMusicWidget("(not playing)", "Idle");
+      updateMusicWidget("(not playing)", "Idle", "");
     }
   } catch (e) {
     console.warn("Music poll error:", e);
   }
 }
 
-function updateMusicWidget(title, artist) {
+function updateMusicWidget(title, artist, imageUrl) {
   const titleEl = document.getElementById("song-title");
   const artistEl = document.getElementById("song-artist");
   const progressEl = document.getElementById("song-progress");
+  const albumArtEl = document.getElementById("album-art");
 
   if (titleEl) titleEl.textContent = title || "No track playing";
   if (artistEl) artistEl.textContent = artist || "—";
 
-  // Last.fm doesn't provide progress/duration in getrecenttracks,
-  // so we hide the progress bar when not actively streaming
+  // Album art
+  if (albumArtEl) {
+    if (imageUrl) {
+      albumArtEl.src = imageUrl;
+      albumArtEl.classList.add("loaded");
+    } else {
+      albumArtEl.src = "";
+      albumArtEl.classList.remove("loaded");
+    }
+  }
+
   if (progressEl) {
     progressEl.style.width = title ? "100%" : "0%";
     progressEl.style.opacity = title ? "0.5" : "0";
@@ -131,6 +143,9 @@ function markPanelsVisible() {
 
 function init() {
   markPanelsVisible();
+
+  // Start particle system
+  particleSystem.init();
 
   // Detect which scene we're in and start polling
   const isChatting = !!document.getElementById("chatting-scene");
