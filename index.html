@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Haze — Gameplay Overlay</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Gameplay Scene: Camera + Music (bottom-right) -->
+  <div id="gameplay-scene">
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="now-playing-label">
+        <span class="eq-icon">
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+        </span>
+        Now Playing
+      </div>
+      <div class="song-title" id="song-title">No track playing</div>
+      <div class="song-artist" id="song-artist">—</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="song-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TwitchAlerts injects here -->
+  <div id="alert-box"></div>
+
+  <script src="config.js"></script>
+  <script src="js/twitch-api.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>

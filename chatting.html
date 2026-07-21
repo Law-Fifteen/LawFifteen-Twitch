@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Haze — Just Chatting Overlay</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Chatting-specific overrides */
+    #chatting-scene .camera-frame {
+      border-radius: var(--radius-lg);
+    }
+
+    .right-panel .events-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-panel .events-card .events-list {
+      flex: 1;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Just Chatting Scene: Camera (left) + Events Panel (right) + Music (bottom-left) -->
+  <div id="chatting-scene">
+
+    <!-- Camera — left side, large -->
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+
+    <!-- Music — below camera -->
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="now-playing-label">
+        <span class="eq-icon">
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+        </span>
+        Now Playing
+      </div>
+      <div class="song-title" id="song-title">No track playing</div>
+      <div class="song-artist" id="song-artist">—</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="song-progress"></div>
+      </div>
+    </div>
+
+    <!-- Right panel — Recent Subs + Followers -->
+    <div class="right-panel">
+
+      <!-- Recent Subscribers -->
+      <div class="events-card fade-in" id="recent-subs">
+        <div class="section-label">Recent Subscriber</div>
+        <div class="events-list" id="subs-list">
+          <div class="empty-state">Waiting for data...</div>
+        </div>
+      </div>
+
+      <!-- Recent Followers -->
+      <div class="events-card fade-in" id="recent-follows">
+        <div class="section-label">Recent Followers</div>
+        <div class="events-list" id="follows-list">
+          <div class="empty-state">Waiting for data...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TwitchAlerts injects here -->
+  <div id="alert-box"></div>
+
+  <script src="config.js"></script>
+  <script src="js/twitch-api.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>
