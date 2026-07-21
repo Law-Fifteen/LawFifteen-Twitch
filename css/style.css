@@ -86,24 +86,15 @@ body {
   z-index: 1;
 }
 
-/* Traveling glow — conic gradient that rotates around the border */
+/* Base glow — subtle constant charge */
 .camera-frame::before {
   content: '';
   position: absolute;
-  inset: -3px;
-  border-radius: inherit;
-  background: conic-gradient(
-    from var(--glow-angle, 0deg),
-    transparent 0%,
-    rgba(124, 92, 191, 0.6) 10%,
-    rgba(157, 127, 255, 0.9) 15%,
-    rgba(124, 92, 191, 0.6) 20%,
-    transparent 30%
-  );
+  inset: -2px;
   z-index: -1;
-  animation: rotateGlow 6s linear infinite;
-  opacity: 0.7;
-  filter: blur(3px);
+  background: var(--border);
+  filter: blur(4px);
+  opacity: 0.3;
 }
 
 /* Inner mask to cut out the camera interior */
@@ -115,40 +106,127 @@ body {
   z-index: -1;
 }
 
-@keyframes rotateGlow {
-  from { --glow-angle: 0deg; }
-  to { --glow-angle: 360deg; }
-}
-
-@property --glow-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-/* Intensity pulse overlay */
+/* Lightning layer — multiple cracks that fire at staggered intervals */
 .camera-glow-pulse {
   position: absolute;
-  inset: -6px;
-  border: 1px solid rgba(124, 92, 191, 0.2);
+  inset: 0;
   pointer-events: none;
   z-index: 2;
-  animation: glowIntensity 4s ease-in-out infinite;
 }
 
-@keyframes glowIntensity {
+.camera-glow-pulse::before,
+.camera-glow-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+}
+
+/* Lightning crack — top edge */
+.camera-glow-pulse::before {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    transparent 20%,
+    rgba(157, 127, 255, 0.9) 20.5%,
+    rgba(200, 180, 255, 1) 21%,
+    rgba(157, 127, 255, 0.9) 21.5%,
+    transparent 22%,
+    transparent 55%,
+    rgba(124, 92, 191, 0.7) 55.5%,
+    rgba(180, 160, 255, 0.9) 56%,
+    rgba(124, 92, 191, 0.7) 56.5%,
+    transparent 57%,
+    transparent 100%
+  );
+  animation: lightningTop 8s ease-in-out infinite;
+  filter: blur(1px);
+  opacity: 0;
+}
+
+/* Lightning crack — side edge */
+.camera-glow-pulse::after {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(157, 127, 255, 0.8) 35.5%,
+    rgba(220, 200, 255, 1) 36%,
+    rgba(157, 127, 255, 0.8) 36.5%,
+    transparent 37%,
+    transparent 70%,
+    rgba(124, 92, 191, 0.6) 70.5%,
+    rgba(180, 160, 255, 0.8) 71%,
+    rgba(124, 92, 191, 0.6) 71.5%,
+    transparent 72%,
+    transparent 100%
+  );
+  animation: lightningSide 8s ease-in-out infinite 2s;
+  filter: blur(1px);
+  opacity: 0;
+}
+
+@keyframes lightningTop {
+  0%, 100% { opacity: 0; }
+  2% { opacity: 0.9; }
+  4% { opacity: 0.2; }
+  5% { opacity: 0.8; }
+  7% { opacity: 0; }
+  50% { opacity: 0; }
+  52% { opacity: 0.7; }
+  53% { opacity: 0.1; }
+  54% { opacity: 0.6; }
+  55% { opacity: 0; }
+}
+
+@keyframes lightningSide {
+  0%, 100% { opacity: 0; }
+  3% { opacity: 0.8; }
+  5% { opacity: 0.15; }
+  6% { opacity: 0.7; }
+  8% { opacity: 0; }
+  60% { opacity: 0; }
+  62% { opacity: 0.6; }
+  63% { opacity: 0.1; }
+  64% { opacity: 0.5; }
+  65% { opacity: 0; }
+}
+
+/* Intense flash overlay — fires when lightning strikes */
+@keyframes glowFlash {
   0%, 100% {
     box-shadow:
-      0 0 10px rgba(124, 92, 191, 0.08),
+      0 0 8px rgba(124, 92, 191, 0.05),
+      inset 0 0 8px rgba(124, 92, 191, 0.02);
+    opacity: 0.3;
+  }
+  2% {
+    box-shadow:
+      0 0 30px rgba(157, 127, 255, 0.5),
+      0 0 60px rgba(124, 92, 191, 0.2),
+      inset 0 0 20px rgba(157, 127, 255, 0.15);
+    opacity: 1;
+  }
+  5% {
+    box-shadow:
+      0 0 10px rgba(124, 92, 191, 0.1),
       inset 0 0 10px rgba(124, 92, 191, 0.03);
     opacity: 0.4;
   }
-  50% {
+  52% {
     box-shadow:
-      0 0 25px rgba(124, 92, 191, 0.2),
-      inset 0 0 15px rgba(124, 92, 191, 0.06);
-    opacity: 0.8;
+      0 0 25px rgba(157, 127, 255, 0.4),
+      0 0 50px rgba(124, 92, 191, 0.15),
+      inset 0 0 15px rgba(157, 127, 255, 0.1);
+    opacity: 0.9;
   }
+  55% {
+    box-shadow:
+      0 0 8px rgba(124, 92, 191, 0.05),
+      inset 0 0 8px rgba(124, 92, 191, 0.02);
+    opacity: 0.3;
+  }
+}
+
+.camera-frame {
+  animation: glowFlash 8s ease-in-out infinite;
 }
 
 /* ---------- Section Labels ---------- */

@@ -54,41 +54,45 @@ let trackStartTime = 0;
 let trackEstimatedDuration = 210000;
 let progressInterval = null;
 let sweepEnabled = true;
+let db = null;
+let stateRef = null;
 
-// ── Control Panel (BroadcastChannel) ─────────────────
+// ── Control Panel (Firebase Realtime Database) ───────
 
 function initControlPanel() {
-  const channel = new BroadcastChannel("haze-overlay");
+  if (typeof firebase === "undefined" || typeof FIREBASE_CONFIG === "undefined") {
+    console.warn("Firebase not loaded — control panel disabled. Using localStorage fallback.");
+    initLocalControl();
+    return;
+  }
 
-  channel.onmessage = (e) => {
-    const msg = e.data;
+  firebase.initializeApp(FIREBASE_CONFIG);
+  db = firebase.database();
+  stateRef = db.ref("haze-state");
 
-    if (msg.type === "ping") {
-      channel.postMessage({ type: "overlay-ready" });
-      return;
-    }
+  // Listen for state changes from control panel
+  stateRef.on("value", (snap) => {
+    const state = snap.val();
+    if (!state) return;
 
-    if (msg.type === "toggle") {
-      applyToggle(msg.feature, msg.enabled);
-    }
+    // Apply each toggle
+    Object.entries(state).forEach(([feature, enabled]) => {
+      if (feature === "scene") {
+        console.log("Scene switch requested:", enabled);
+        return;
+      }
+      applyToggle(feature, enabled);
+    });
+  });
 
-    if (msg.type === "scene") {
-      // Scene switching is handled by OBS switching Browser Sources.
-      // This is a visual indicator only.
-      console.log("Scene switch requested:", msg.scene);
-      document.title = `Haze — ${msg.scene === "chatting" ? "Just Chatting" : "Gameplay"}`;
-    }
-  };
+  console.log("Firebase control panel connected");
+}
 
-  // Apply saved state from localStorage
+// Fallback for local-only use (no Firebase)
+function initLocalControl() {
   ["music", "camera", "bokeh", "sweep", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
-    if (saved === "false") {
-      applyToggle(feature, false);
-      // Sync toggle UI
-      const toggle = document.querySelector(`[data-toggle="${feature}"]`);
-      if (toggle) toggle.checked = false;
-    }
+    if (saved === "false") applyToggle(feature, false);
   });
 }
 
@@ -192,7 +196,7 @@ async function pollMusic() {
 
     if (!track.isNowPlaying) {
       stopProgressAnimation();
-      updateMusicWidget("(not playing)", "Idle", "", false);
+      updateMusicWidget("No track playing.. recommend one in the chat!", "Idle", "", false);
     }
   } catch (e) {
     console.warn("Music poll error:", e);
