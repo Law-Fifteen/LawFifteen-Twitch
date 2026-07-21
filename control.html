@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haze — Control Panel</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #14141f;
+      --border: #2a2a3a;
+      --accent: #7c5cbf;
+      --glow: #9d7fff;
+      --text: #e8e6f0;
+      --muted: #6b6880;
+      --dim: #4a4760;
+      --danger: #bf4c5c;
+      --success: #4cbf6a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 30px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 30px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 30px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: background 0.3s;
+    }
+
+    .status-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 8px rgba(76, 191, 106, 0.4);
+    }
+
+    /* ── Section ─────────────────────────── */
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Toggle Row ──────────────────────── */
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .toggle-row:hover {
+      border-color: var(--accent);
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .toggle-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Toggle switch */
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      left: 3px;
+      top: 3px;
+      background: var(--text);
+      border-radius: 50%;
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    .toggle input:checked + .slider {
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(124, 92, 191, 0.4);
+    }
+
+    .toggle input:checked + .slider::before {
+      transform: translateX(20px);
+      background: #fff;
+    }
+
+    /* ── Scene Buttons ───────────────────── */
+
+    .scene-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .scene-btn {
+      padding: 16px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .scene-btn:hover {
+      border-color: var(--accent);
+      background: rgba(124, 92, 191, 0.08);
+    }
+
+    .scene-btn.active {
+      border-color: var(--accent);
+      background: rgba(124, 92, 191, 0.15);
+      box-shadow: 0 0 20px rgba(124, 92, 191, 0.15);
+    }
+
+    .scene-btn .scene-icon {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .scene-btn .scene-name {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* ── Overlay Tabs ────────────────────── */
+
+    .overlay-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tab-btn {
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124, 92, 191, 0.1);
+    }
+
+    /* ── Preset Buttons ──────────────────── */
+
+    .preset-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .preset-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Haze Control</h1>
+  <div class="subtitle">Stream Overlay Control Panel</div>
+
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Connecting to overlays...</span>
+  </div>
+
+  <!-- ── Scene Switcher ──────────────────── -->
+  <div class="section">
+    <div class="section-title">Active Scene</div>
+    <div class="scene-buttons">
+      <button class="scene-btn active" data-scene="gameplay" onclick="switchScene('gameplay')">
+        <div class="scene-icon">&#9654;</div>
+        <div>Gameplay</div>
+        <div class="scene-name">Camera + Music</div>
+      </button>
+      <button class="scene-btn" data-scene="chatting" onclick="switchScene('chatting')">
+        <div class="scene-icon">&#9679;</div>
+        <div>Just Chatting</div>
+        <div class="scene-name">Full Layout</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Overlay Toggles ─────────────────── -->
+  <div class="section">
+    <div class="section-title">Elements</div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Now Playing</div>
+        <div class="toggle-desc">Music widget with album art</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="music" onchange="sendToggle('music', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Camera Frame</div>
+        <div class="toggle-desc">Glowing border around camera</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="camera" onchange="sendToggle('camera', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Bokeh Effects</div>
+        <div class="toggle-desc">Ambient floating light orbs</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="bokeh" onchange="sendToggle('bokeh', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Song Change Sweep</div>
+        <div class="toggle-desc">Particle burst on track change</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="sweep" onchange="sendToggle('sweep', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Recent Subscribers</div>
+        <div class="toggle-desc">Subscriber events panel</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="subs" onchange="sendToggle('subs', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Recent Followers</div>
+        <div class="toggle-desc">Follower events panel</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="follows" onchange="sendToggle('follows', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Progress Bar</div>
+        <div class="toggle-desc">Track progress indicator</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" checked data-toggle="progress" onchange="sendToggle('progress', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Quick Presets ───────────────────── -->
+  <div class="section">
+    <div class="section-title">Presets</div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="applyPreset('full')">Full</button>
+      <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
+      <button class="preset-btn" onclick="applyPreset('camera-only')">Camera Only</button>
+      <button class="preset-btn" onclick="applyPreset('all-off')">All Off</button>
+    </div>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────
+
+    const channel = new BroadcastChannel("haze-overlay");
+    let connected = false;
+
+    channel.onmessage = (e) => {
+      if (e.data.type === "overlay-ready") {
+        connected = true;
+        document.getElementById("status-dot").classList.add("connected");
+        document.getElementById("status-text").textContent = "Overlay connected";
+      }
+    };
+
+    // Send heartbeat ping and listen for pong
+    setInterval(() => {
+      channel.postMessage({ type: "ping" });
+      connected = false;
+      document.getElementById("status-dot").classList.remove("connected");
+      document.getElementById("status-text").textContent = "Searching...";
+    }, 3000);
+
+    // ── Send Commands ──────────────────────────────
+
+    function send(type, payload) {
+      channel.postMessage({ type, ...payload });
+    }
+
+    function sendToggle(feature, enabled) {
+      send("toggle", { feature, enabled });
+    }
+
+    function switchScene(scene) {
+      document.querySelectorAll(".scene-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelector(`.scene-btn[data-scene="${scene}"]`).classList.add("active");
+      send("scene", { scene });
+    }
+
+    function applyPreset(name) {
+      const presets = {
+        full: { music: true, camera: true, bokeh: true, sweep: true, subs: true, follows: true, progress: true },
+        minimal: { music: true, camera: true, bokeh: false, sweep: false, subs: false, follows: false, progress: true },
+        "camera-only": { music: false, camera: true, bokeh: false, sweep: false, subs: false, follows: false, progress: false },
+        "all-off": { music: false, camera: false, bokeh: false, sweep: false, subs: false, follows: false, progress: false },
+      };
+
+      const preset = presets[name];
+      if (!preset) return;
+
+      // Update toggles and send
+      document.querySelectorAll(".toggle input").forEach((input) => {
+        const feature = input.dataset.toggle;
+        if (feature in preset) {
+          input.checked = preset[feature];
+          sendToggle(feature, preset[feature]);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

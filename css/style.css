@@ -83,28 +83,72 @@ body {
   border: 2px solid var(--border);
   border-radius: 0;
   overflow: hidden;
-  animation: glowPulse 4s ease-in-out infinite;
+  z-index: 1;
 }
 
+/* Traveling glow — conic gradient that rotates around the border */
+.camera-frame::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--glow-angle, 0deg),
+    transparent 0%,
+    rgba(124, 92, 191, 0.6) 10%,
+    rgba(157, 127, 255, 0.9) 15%,
+    rgba(124, 92, 191, 0.6) 20%,
+    transparent 30%
+  );
+  z-index: -1;
+  animation: rotateGlow 6s linear infinite;
+  opacity: 0.7;
+  filter: blur(3px);
+}
+
+/* Inner mask to cut out the camera interior */
 .camera-frame::after {
   content: '';
   position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  border: 2px solid var(--border-glow);
-  opacity: 0.4;
-  animation: borderGlow 4s ease-in-out infinite;
+  inset: 2px;
+  background: var(--bg-void);
+  z-index: -1;
+}
+
+@keyframes rotateGlow {
+  from { --glow-angle: 0deg; }
+  to { --glow-angle: 360deg; }
+}
+
+@property --glow-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Intensity pulse overlay */
+.camera-glow-pulse {
+  position: absolute;
+  inset: -6px;
+  border: 1px solid rgba(124, 92, 191, 0.2);
   pointer-events: none;
+  z-index: 2;
+  animation: glowIntensity 4s ease-in-out infinite;
 }
 
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 15px var(--glow-soft), 0 0 40px rgba(124, 92, 191, 0.08); }
-  50% { box-shadow: 0 0 35px var(--glow-medium), 0 0 80px rgba(124, 92, 191, 0.15); }
-}
-
-@keyframes borderGlow {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.8; }
+@keyframes glowIntensity {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(124, 92, 191, 0.08),
+      inset 0 0 10px rgba(124, 92, 191, 0.03);
+    opacity: 0.4;
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(124, 92, 191, 0.2),
+      inset 0 0 15px rgba(124, 92, 191, 0.06);
+    opacity: 0.8;
+  }
 }
 
 /* ---------- Section Labels ---------- */
@@ -188,11 +232,11 @@ body {
 
 .music-widget .music-text {
   flex: 1;
-  padding: 14px 18px;
+  padding: 12px 18px 12px 18px;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .music-widget .album-art-wrap {
@@ -261,20 +305,35 @@ body {
 }
 
 .song-title {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;
+}
+
+.song-title.scroll-text {
+  animation: marquee 12s linear infinite;
 }
 
 .song-artist {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  position: relative;
+}
+
+.song-artist.scroll-text {
+  animation: marquee 10s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  20% { transform: translateX(0%); }
+  80% { transform: translateX(-100%); }
+  100% { transform: translateX(-100%); }
 }
 
 .progress-bar-track {
@@ -282,13 +341,13 @@ body {
   height: 3px;
   background: var(--border);
   border-radius: 2px;
-  margin-top: 10px;
+  margin-top: auto;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--glow));
+  background: linear-gradient(90deg, #b388ff, #e8e6f0);
   border-radius: 2px;
   width: 0%;
   transition: width 1s linear;

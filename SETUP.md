@@ -127,19 +127,40 @@ Switch scenes in OBS — each overlay renders independently.
 
 ---
 
+## Control Panel
+
+The overlay includes a control panel for toggling features and switching scenes
+without touching OBS.
+
+1. Open `control.html` in any browser (not as an OBS source — just a regular tab)
+2. It connects to the overlay via BroadcastChannel automatically
+3. Toggle features on/off: Now Playing, Camera Glow, Bokeh, Sweep, Events
+4. Switch scenes: Gameplay / Just Chatting
+5. Use presets: Full, Minimal, Camera Only, All Off
+
+The control panel remembers your settings across sessions via localStorage.
+
+> **Tip:** Pin the control panel on a second monitor or phone browser for
+> quick access while streaming.
+
+---
+
 ## File Structure
 
 ```
 Scenes/
 ├── index.html          ← Gameplay scene (camera bottom-right + music)
 ├── chatting.html       ← Just Chatting scene (camera + events panel)
+├── control.html        ← Control panel (open in browser, not OBS)
 ├── config.js           ← Your API credentials (DO NOT commit this)
 ├── config.example.js   ← Template for others to copy
+├── CNAME               ← GitHub Pages custom domain
 ├── css/
 │   └── style.css       ← All styling + animations
 ├── js/
 │   ├── twitch-api.js   ← Twitch API integration
 │   ├── lastfm-api.js   ← Last.fm now playing integration
-│   └── overlay.js      ← Core logic + rendering
+│   ├── particles.js    ← Bokeh + sweep effects
+│   └── overlay.js      ← Core logic + control panel integration
 └── SETUP.md            ← This file
 ```
