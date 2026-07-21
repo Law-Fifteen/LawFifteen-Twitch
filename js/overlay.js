@@ -227,6 +227,22 @@ function stopProgressAnimation() {
   }
 }
 
+function setupScrollText(el) {
+  el.classList.remove("scroll-text");
+  void el.offsetWidth;
+
+  if (el.scrollWidth > el.clientWidth) {
+    // Calculate how far to scroll: text width minus container width, plus padding
+    const overflow = el.scrollWidth - el.clientWidth;
+    const scrollPx = overflow + 20;
+    const duration = Math.max(6, scrollPx / 30); // ~30px per second
+
+    el.style.setProperty("--scroll-distance", `-${scrollPx}px`);
+    el.style.setProperty("--scroll-duration", `${duration}s`);
+    el.classList.add("scroll-text");
+  }
+}
+
 function updateMusicWidget(title, artist, imageUrl, isActive) {
   const titleEl = document.getElementById("song-title");
   const artistEl = document.getElementById("song-artist");
@@ -235,20 +251,12 @@ function updateMusicWidget(title, artist, imageUrl, isActive) {
 
   if (titleEl) {
     titleEl.textContent = title || "No track playing";
-    titleEl.classList.remove("scroll-text");
-    void titleEl.offsetWidth;
-    if (titleEl.scrollWidth > titleEl.clientWidth) {
-      titleEl.classList.add("scroll-text");
-    }
+    setupScrollText(titleEl);
   }
 
   if (artistEl) {
     artistEl.textContent = artist || "\u2014";
-    artistEl.classList.remove("scroll-text");
-    void artistEl.offsetWidth;
-    if (artistEl.scrollWidth > artistEl.clientWidth) {
-      artistEl.classList.add("scroll-text");
-    }
+    setupScrollText(artistEl);
   }
 
   if (albumArtEl) {
