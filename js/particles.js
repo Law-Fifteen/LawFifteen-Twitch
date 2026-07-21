@@ -1,6 +1,6 @@
 /**
  * Haze Particle System
- * Animated glowing particles that float around the camera frame area.
+ * Animated glowing particles that orbit around the camera frame — never inside it.
  */
 class ParticleSystem {
   constructor(canvasId) {
@@ -9,32 +9,91 @@ class ParticleSystem {
     this.ctx = this.canvas.getContext("2d");
     this.particles = [];
     this.running = false;
-    this.mouseX = -1;
-    this.mouseY = -1;
+    this.cameraRect = null;
     this.config = {
-      count: 40,
+      count: 35,
       minSize: 1,
-      maxSize: 3.5,
-      speed: 0.3,
-      glowSize: 12,
-      color: { r: 124, g: 92, b: 191 },  // --accent: #7c5cbf
-      fadeSpeed: 0.005,
-      connectionDist: 150,
+      maxSize: 3,
+      speed: 0.25,
+      glowSize: 14,
+      color: { r: 124, g: 92, b: 191 },
+      connectionDist: 120,
+      spawnPadding: 60,   // how far outside the camera frame particles can spawn
     };
   }
 
   init() {
     if (!this.canvas) return;
     this.resize();
+    this.detectCamera();
     this.createParticles();
     this.running = true;
     this.animate();
-    window.addEventListener("resize", () => this.resize());
+    window.addEventListener("resize", () => {
+      this.resize();
+      this.detectCamera();
+    });
   }
 
   resize() {
     this.canvas.width = 1920;
     this.canvas.height = 1080;
+  }
+
+  /** Find the camera frame element and get its bounding rect. */
+  detectCamera() {
+    const cam = document.getElementById("camera");
+    if (!cam) {
+      // Fallback: use gameplay position
+      this.cameraRect = { x: 1554, y: 684, w: 336, h: 336 };
+      return;
+    }
+    const r = cam.getBoundingClientRect();
+    this.cameraRect = { x: r.left, y: r.top, w: r.width, h: r.height };
+  }
+
+  /** Spawn a particle somewhere around the camera frame border. */
+  createParticle() {
+    const size = this.config.minSize + Math.random() * (this.config.maxSize - this.config.minSize);
+    const { x, y, w, h } = this.cameraRect;
+    const pad = this.config.spawnPadding;
+
+    // Pick a random edge of the camera frame + padding zone
+    // 0=top, 1=right, 2=bottom, 3=left
+    const edge = Math.floor(Math.random() * 4);
+    let px, py;
+
+    switch (edge) {
+      case 0: // top edge — above camera
+        px = x - pad + Math.random() * (w + pad * 2);
+        py = y - pad + Math.random() * pad;
+        break;
+      case 1: // right edge — right of camera
+        px = x + w + Math.random() * pad;
+        py = y - pad + Math.random() * (h + pad * 2);
+        break;
+      case 2: // bottom edge — below camera
+        px = x - pad + Math.random() * (w + pad * 2);
+        py = y + h + Math.random() * pad;
+        break;
+      case 3: // left edge — left of camera
+        px = x - pad + Math.random() * pad;
+        py = y - pad + Math.random() * (h + pad * 2);
+        break;
+    }
+
+    return {
+      x: px,
+      y: py,
+      size,
+      baseSize: size,
+      vx: (Math.random() - 0.5) * this.config.speed,
+      vy: (Math.random() - 0.5) * this.config.speed,
+      opacity: 0.2 + Math.random() * 0.5,
+      baseOpacity: 0.2 + Math.random() * 0.5,
+      pulsePhase: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.008 + Math.random() * 0.015,
+    };
   }
 
   createParticles() {
@@ -44,20 +103,11 @@ class ParticleSystem {
     }
   }
 
-  createParticle() {
-    const size = this.config.minSize + Math.random() * (this.config.maxSize - this.config.minSize);
-    return {
-      x: Math.random() * this.canvas.width,
-      y: Math.random() * this.canvas.height,
-      size,
-      baseSize: size,
-      vx: (Math.random() - 0.5) * this.config.speed,
-      vy: (Math.random() - 0.5) * this.config.speed,
-      opacity: 0.2 + Math.random() * 0.6,
-      baseOpacity: 0.2 + Math.random() * 0.6,
-      pulsePhase: Math.random() * Math.PI * 2,
-      pulseSpeed: 0.01 + Math.random() * 0.02,
-    };
+  /** Check if a point is inside the camera frame. */
+  isInsideCamera(px, py) {
+    if (!this.cameraRect) return false;
+    const { x, y, w, h } = this.cameraRect;
+    return px >= x && px <= x + w && py >= y && py <= y + h;
   }
 
   updateParticle(p) {
@@ -65,16 +115,33 @@ class ParticleSystem {
     p.y += p.vy;
     p.pulsePhase += p.pulseSpeed;
 
-    // Pulsing glow
     const pulse = Math.sin(p.pulsePhase);
     p.opacity = p.baseOpacity + pulse * 0.2;
-    p.size = p.baseSize + pulse * 0.5;
+    p.size = p.baseSize + pulse * 0.4;
 
-    // Wrap around screen
-    if (p.x < -20) p.x = this.canvas.width + 20;
-    if (p.x > this.canvas.width + 20) p.x = -20;
-    if (p.y < -20) p.y = this.canvas.height + 20;
-    if (p.y > this.canvas.height + 20) p.y = -20;
+    // If particle drifted inside camera, push it out to nearest edge
+    if (this.isInsideCamera(p.x, p.y)) {
+      const { x, y, w, h } = this.cameraRect;
+      const toLeft = p.x - x;
+      const toRight = (x + w) - p.x;
+      const toTop = p.y - y;
+      const toBottom = (y + h) - p.y;
+      const min = Math.min(toLeft, toRight, toTop, toBottom);
+
+      if (min === toLeft) { p.x = x - 5; p.vx = -Math.abs(p.vx); }
+      else if (min === toRight) { p.x = x + w + 5; p.vx = Math.abs(p.vx); }
+      else if (min === toTop) { p.y = y - 5; p.vy = -Math.abs(p.vy); }
+      else { p.y = y + h + 5; p.vy = Math.abs(p.vy); }
+    }
+
+    // Respawn if too far from camera
+    const { x, y, w, h } = this.cameraRect;
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+    const dist = Math.hypot(p.x - cx, p.y - cy);
+    if (dist > 400) {
+      Object.assign(p, this.createParticle());
+    }
   }
 
   drawParticle(p) {
@@ -83,7 +150,7 @@ class ParticleSystem {
 
     // Outer glow
     const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, this.config.glowSize);
-    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${p.opacity * 0.3})`);
+    gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${p.opacity * 0.35})`);
     gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
     ctx.fillStyle = gradient;
     ctx.beginPath();
@@ -99,7 +166,7 @@ class ParticleSystem {
     // Bright center
     ctx.fillStyle = `rgba(232, 230, 240, ${p.opacity * 0.5})`;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * 0.4, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, p.size * 0.35, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -117,7 +184,7 @@ class ParticleSystem {
         const d = Math.sqrt(dx * dx + dy * dy);
 
         if (d < dist) {
-          const alpha = (1 - d / dist) * 0.12;
+          const alpha = (1 - d / dist) * 0.1;
           ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
           ctx.lineWidth = 0.5;
           ctx.beginPath();
@@ -148,5 +215,4 @@ class ParticleSystem {
   }
 }
 
-// Auto-init
 const particleSystem = new ParticleSystem("particle-canvas");

@@ -306,12 +306,12 @@ body {
 }
 
 #gameplay-scene .camera-frame {
-  width: 364px;
-  height: 364px;
+  width: 336px;
+  height: 336px;
 }
 
 #gameplay-scene .music-widget {
-  width: 364px;
+  width: 336px;
   height: 110px;
 }
 
