@@ -61,18 +61,40 @@ The `broadcasterId` auto-populates from your channel name on first load.
 
 ---
 
-## Pixel.Chat + Spotify Integration
+## Now Playing — Last.fm Integration
 
-The overlay listens for Spotify data via `window.postMessage`. Pixel.Chat
-sends this automatically when configured:
+The music widget pulls your currently playing track from Last.fm. You need a
+free Last.fm account and an API key.
 
-1. In Pixel.Chat, set up your Spotify widget
-2. In the widget settings, enable **postMessage** output
-3. Add the Pixel.Chat widget as a Browser Source in OBS (can be hidden)
-4. The overlay picks up the data and updates the Now Playing section
+### Step 1: Get a Last.fm API Key
 
-If you don't use Pixel.Chat for this, you can replace the `handlePixelChatMessage`
-function in `js/overlay.js` with your own Spotify polling logic.
+1. Go to https://www.last.fm/api/account/create
+2. Fill in:
+   - **Application Name:** `Haze Overlay` (or anything)
+   - **Contact Email:** your email
+3. Click **Submit**
+4. Copy the **API Key** — paste it into `config.js` as `lastfm.apiKey`
+
+### Step 2: Make Sure Scrobbling is Enabled
+
+The overlay shows whatever your Last.fm profile reports as "now playing." Make
+sure your music app (Spotify, Apple Music, etc.) is connected to Last.fm:
+
+1. Go to https://www.last.fm/settings/applications
+2. Connect your music player (Spotify, etc.)
+3. Music will now appear in the overlay automatically
+
+### Step 3: Edit config.js
+
+```js
+lastfm: {
+  apiKey: "your_lastfm_api_key_here",
+  username: "AmbrosioRequiem"
+},
+```
+
+> **Note:** There can be a 2-4 minute delay between when you start a track and
+> when Last.fm reports it. The overlay polls every 5 seconds.
 
 ---
 
@@ -112,10 +134,12 @@ Scenes/
 ├── index.html          ← Gameplay scene (camera bottom-right + music)
 ├── chatting.html       ← Just Chatting scene (camera + events panel)
 ├── config.js           ← Your API credentials (DO NOT commit this)
+├── config.example.js   ← Template for others to copy
 ├── css/
 │   └── style.css       ← All styling + animations
 ├── js/
 │   ├── twitch-api.js   ← Twitch API integration
+│   ├── lastfm-api.js   ← Last.fm now playing integration
 │   └── overlay.js      ← Core logic + rendering
 └── SETUP.md            ← This file
 ```

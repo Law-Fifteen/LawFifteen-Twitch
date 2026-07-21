@@ -77,24 +77,33 @@ async function pollSubscribers() {
   }
 }
 
-// ── Music Widget (Pixel.Chat integration) ────────────
-// Pixel.Chat posts song data via postMessage when configured.
-// This listener picks it up. If not using Pixel.Chat, you
-// can replace this with your own Spotify polling.
+// ── Music Widget (Last.fm integration) ───────────────
 
-function handlePixelChatMessage(event) {
+let lastTrackTitle = "";
+
+async function pollMusic() {
+  if (!CONFIG.lastfm.apiKey || !CONFIG.lastfm.username) return;
   try {
-    const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-    if (data.type === "spotify" || data.spotify) {
-      const song = data.spotify || data;
-      updateMusicWidget(song.title, song.artist, song.progress, song.duration);
+    const track = await lastfmAPI.getNowPlaying();
+    if (!track) return;
+
+    // Only update DOM if track changed
+    if (track.title !== lastTrackTitle) {
+      lastTrackTitle = track.title;
+      updateMusicWidget(track.title, track.artist);
+      console.log("Now playing:", track.artist, "-", track.title);
     }
-  } catch {
-    // Not our message, ignore
+
+    // Show "Not streaming" indicator if nothing is actively playing
+    if (!track.isNowPlaying) {
+      updateMusicWidget("(not playing)", "Idle");
+    }
+  } catch (e) {
+    console.warn("Music poll error:", e);
   }
 }
 
-function updateMusicWidget(title, artist, progress, duration) {
+function updateMusicWidget(title, artist) {
   const titleEl = document.getElementById("song-title");
   const artistEl = document.getElementById("song-artist");
   const progressEl = document.getElementById("song-progress");
@@ -102,9 +111,11 @@ function updateMusicWidget(title, artist, progress, duration) {
   if (titleEl) titleEl.textContent = title || "No track playing";
   if (artistEl) artistEl.textContent = artist || "—";
 
-  if (progressEl && progress != null && duration) {
-    const pct = Math.min((progress / duration) * 100, 100);
-    progressEl.style.width = `${pct}%`;
+  // Last.fm doesn't provide progress/duration in getrecenttracks,
+  // so we hide the progress bar when not actively streaming
+  if (progressEl) {
+    progressEl.style.width = title ? "100%" : "0%";
+    progressEl.style.opacity = title ? "0.5" : "0";
   }
 }
 
@@ -121,12 +132,13 @@ function markPanelsVisible() {
 function init() {
   markPanelsVisible();
 
-  // Listen for Pixel.Chat Spotify data
-  window.addEventListener("message", handlePixelChatMessage);
-
   // Detect which scene we're in and start polling
   const isChatting = !!document.getElementById("chatting-scene");
   const isGameplay = !!document.getElementById("gameplay-scene");
+
+  // Poll music on both scenes
+  pollMusic();
+  setInterval(pollMusic, CONFIG.refreshIntervals.music);
 
   if (isChatting) {
     pollFollowers();

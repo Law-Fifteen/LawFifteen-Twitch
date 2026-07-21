@@ -8,9 +8,14 @@ const CONFIG = {
     broadcasterId: "",
     channelName: "LawFifteen"
   },
+  lastfm: {
+    apiKey: "",          // Get from https://www.last.fm/api/account/create
+    username: "AmbrosioRequiem"
+  },
   refreshIntervals: {
     followers: 30000,
     subscribers: 60000,
+    music: 5000,
   },
   maxRecentEvents: 5,
 };
