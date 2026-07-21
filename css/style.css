@@ -305,7 +305,7 @@ body {
   padding: 0;
   display: flex;
   flex-direction: row;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .music-widget .music-text {
@@ -409,8 +409,8 @@ body {
 
 @keyframes marquee {
   0% { transform: translateX(0); }
-  15% { transform: translateX(0); }
-  85% { transform: translateX(var(--scroll-distance, -50%)); }
+  12% { transform: translateX(0); }
+  88% { transform: translateX(var(--scroll-distance, -50%)); }
   100% { transform: translateX(var(--scroll-distance, -50%)); }
 }
 
@@ -531,6 +531,12 @@ body {
 /* ============================================
    CONTROL BAR — Hover top edge to reveal
    ============================================ */
+
+/* Scene visibility */
+.scene { display: none; }
+.scene.active { display: block; }
+.scene.active.flex-scene { display: flex; }
+.scene.active.grid-scene { display: grid; }
 
 #control-bar {
   position: fixed;

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Haze Overlay</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .right-panel .events-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .right-panel .events-card .events-list {
+      flex: 1;
+      overflow: hidden;
+    }
+    /* Ultrawide layout tweaks at 1920 */
+    #ultrawide-scene .music-widget {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      width: 380px;
+      height: 110px;
+    }
+    #ultrawide-scene .chat-box {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1200px;
+      height: 280px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: var(--radius-md) var(--radius-md) 0 0;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    #ultrawide-scene .chat-box .chat-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    #ultrawide-scene .chat-box .chat-area {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    #chat-embed {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 4px;
+      background: rgba(10, 10, 15, 0.5);
+    }
+    #ultrawide-scene .camera-frame {
+      position: absolute;
+      bottom: 0;
+      right: 40px;
+      width: 336px;
+      height: 336px;
+      z-index: 10;
+    }
+    /* Bottom-right stack for gameplay scene */
+    #gameplay-scene {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+    }
+    #gameplay-scene .camera-frame { width: 336px; height: 336px; }
+    #gameplay-scene .music-widget { width: 336px; height: 110px; }
+  </style>
+</head>
+<body>
+
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Control Bar — click empty space to toggle -->
+  <div id="control-bar">
+    <div class="control-inner">
+      <div class="control-group">
+        <span class="control-label">Scene</span>
+        <button class="ctrl-btn" data-scene="gameplay" onclick="switchScene('gameplay')">Gameplay</button>
+        <button class="ctrl-btn" data-scene="chatting" onclick="switchScene('chatting')">Chatting</button>
+        <button class="ctrl-btn" data-scene="ultrawide" onclick="switchScene('ultrawide')">Ultrawide</button>
+      </div>
+      <div class="control-divider"></div>
+      <div class="control-group">
+        <span class="control-label">Toggle</span>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="music" onchange="applyToggle('music', this.checked)"><span>Now Playing</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="camera" onchange="applyToggle('camera', this.checked)"><span>Camera</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="bokeh" onchange="applyToggle('bokeh', this.checked)"><span>Bokeh</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="sweep" onchange="applyToggle('sweep', this.checked)"><span>Sweep</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="progress" onchange="applyToggle('progress', this.checked)"><span>Progress</span></label>
+      </div>
+      <div class="control-divider"></div>
+      <div class="control-group">
+        <span class="control-label">Presets</span>
+        <button class="ctrl-btn small" onclick="applyPreset('full')">Full</button>
+        <button class="ctrl-btn small" onclick="applyPreset('minimal')">Minimal</button>
+        <button class="ctrl-btn small" onclick="applyPreset('off')">Off</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ GAMEPLAY SCENE ═══════ -->
+  <div id="gameplay-scene" class="scene">
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-glow-pulse"></div>
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="music-text">
+        <div class="now-playing-label">
+          <span class="eq-icon">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </span>
+          Now Playing
+        </div>
+        <div class="song-title" id="song-title">No track playing.. recommend one in the chat!</div>
+        <div class="song-artist" id="song-artist">—</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="song-progress"></div>
+        </div>
+      </div>
+      <div class="album-art-wrap">
+        <img class="album-art" id="album-art" src="" alt="Album Art">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ JUST CHATTING SCENE ═══════ -->
+  <div id="chatting-scene" class="scene grid-scene">
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-glow-pulse"></div>
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="music-text">
+        <div class="now-playing-label">
+          <span class="eq-icon">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </span>
+          Now Playing
+        </div>
+        <div class="song-title" id="song-title">No track playing.. recommend one in the chat!</div>
+        <div class="song-artist" id="song-artist">—</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="song-progress"></div>
+        </div>
+      </div>
+      <div class="album-art-wrap">
+        <img class="album-art" id="album-art" src="" alt="Album Art">
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="events-card fade-in" id="recent-subs">
+        <div class="section-label">Recent Subscriber</div>
+        <div class="events-list" id="subs-list">
+          <div class="empty-state">Waiting for data...</div>
+        </div>
+      </div>
+      <div class="events-card fade-in" id="recent-follows">
+        <div class="section-label">Recent Followers</div>
+        <div class="events-list" id="follows-list">
+          <div class="empty-state">Waiting for data...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ ULTRAWIDE SCENE ═══════ -->
+  <div id="ultrawide-scene" class="scene">
+    <div class="music-widget fade-in" id="music-widget">
+      <div class="music-text">
+        <div class="now-playing-label">
+          <span class="eq-icon">
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </span>
+          Now Playing
+        </div>
+        <div class="song-title" id="song-title">No track playing.. recommend one in the chat!</div>
+        <div class="song-artist" id="song-artist">—</div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="song-progress"></div>
+        </div>
+      </div>
+      <div class="album-art-wrap">
+        <img class="album-art" id="album-art" src="" alt="Album Art">
+      </div>
+    </div>
+    <div class="chat-box fade-in">
+      <div class="chat-label">Chat</div>
+      <div class="chat-area">
+        <iframe id="chat-embed" src="" allowfullscreen></iframe>
+      </div>
+    </div>
+    <div class="camera-frame fade-in" id="camera">
+      <div class="camera-glow-pulse"></div>
+      <div class="camera-inner">
+        <!-- OBS: Add your Video Capture Device source inside this frame -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TwitchAlerts injects here -->
+  <div id="alert-box"></div>
+
+  <script src="config.js"></script>
+  <script src="js/twitch-api.js"></script>
+  <script src="js/lastfm-api.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>
