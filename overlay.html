@@ -98,7 +98,7 @@
         <span class="control-label">Toggle</span>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="music" onchange="applyToggle('music', this.checked)"><span>Now Playing</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="camera" onchange="applyToggle('camera', this.checked)"><span>Camera</span></label>
-        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="bokeh" onchange="applyToggle('bokeh', this.checked)"><span>Bokeh</span></label>
+        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="glow" onchange="applyToggle('glow', this.checked)"><span>Glow</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="sweep" onchange="applyToggle('sweep', this.checked)"><span>Sweep</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="progress" onchange="applyToggle('progress', this.checked)"><span>Progress</span></label>
       </div>
@@ -115,7 +115,6 @@
   <!-- ═══════ GAMEPLAY SCENE ═══════ -->
   <div id="gameplay-scene" class="scene active">
     <div class="camera-frame fade-in">
-      <div class="camera-glow-pulse"></div>
       <div class="camera-inner"></div>
     </div>
     <div class="music-widget fade-in">
@@ -143,7 +142,6 @@
   <!-- ═══════ JUST CHATTING SCENE ═══════ -->
   <div id="chatting-scene" class="scene grid-scene">
     <div class="camera-frame fade-in">
-      <div class="camera-glow-pulse"></div>
       <div class="camera-inner"></div>
     </div>
     <div class="music-widget fade-in">
@@ -211,7 +209,6 @@
       </div>
     </div>
     <div class="camera-frame fade-in">
-      <div class="camera-glow-pulse"></div>
       <div class="camera-inner"></div>
     </div>
   </div>

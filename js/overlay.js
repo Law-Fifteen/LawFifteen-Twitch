@@ -56,7 +56,7 @@ const SCENE_DISPLAY = {
 
 function initControlBar() {
   // Restore saved toggle states
-  ["music", "camera", "bokeh", "sweep", "subs", "follows", "progress"].forEach((feature) => {
+  ["music", "camera", "glow", "sweep", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") {
       applyToggle(feature, false);
@@ -110,7 +110,7 @@ function switchScene(scene, save = true) {
   if (save) localStorage.setItem("haze-scene", scene);
 
   // Re-apply saved toggles
-  ["music", "camera", "bokeh", "progress", "subs", "follows"].forEach((feature) => {
+  ["music", "camera", "glow", "progress", "subs", "follows"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") applyToggle(feature, false);
   });
@@ -125,9 +125,9 @@ function switchScene(scene, save = true) {
 
 function applyPreset(name) {
   const presets = {
-    full: { music: true, camera: true, bokeh: true, sweep: true, subs: true, follows: true, progress: true },
-    minimal: { music: true, camera: true, bokeh: false, sweep: false, subs: false, follows: false, progress: true },
-    off: { music: false, camera: false, bokeh: false, sweep: false, subs: false, follows: false, progress: false },
+    full: { music: true, camera: true, glow: true, sweep: true, subs: true, follows: true, progress: true },
+    minimal: { music: true, camera: true, glow: false, sweep: false, subs: false, follows: false, progress: true },
+    off: { music: false, camera: false, glow: false, sweep: false, subs: false, follows: false, progress: false },
   };
 
   const preset = presets[name];
@@ -154,17 +154,10 @@ function applyToggle(feature, enabled) {
         el.style.display = enabled ? "" : "none";
       });
       break;
-    case "bokeh":
-      if (enabled) {
-        hazeEffects?.init();
-      } else {
-        hazeEffects?.stop();
-        const canvas = document.getElementById("particle-canvas");
-        if (canvas) {
-          const ctx = canvas.getContext("2d");
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-      }
+    case "glow":
+      document.querySelectorAll(".camera-frame").forEach((el) => {
+        el.classList.toggle("glow-off", !enabled);
+      });
       break;
     case "sweep":
       sweepEnabled = enabled;
