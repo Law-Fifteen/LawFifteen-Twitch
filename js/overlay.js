@@ -222,6 +222,10 @@ async function pollMusic() {
       trackStartTime = Date.now();
       startProgressAnimation(track.title, track.artist, track.image);
 
+      if (hazeEffects?.triggerSweep) {
+        hazeEffects.triggerSweep();
+      }
+
       console.log("Now playing:", track.artist, "-", track.title);
     }
 
@@ -421,6 +425,7 @@ function init() {
   });
 
   initControlBar();
+  hazeEffects?.init();
 
   pollMusic();
   setInterval(pollMusic, CONFIG.refreshIntervals.music);

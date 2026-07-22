@@ -350,10 +350,17 @@ body {
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #b388ff, #e8e6f0);
+  background: linear-gradient(90deg, #00d2ff, #a29bfe, #00d2ff, #a29bfe);
+  background-size: 200% 100%;
+  animation: progressShift 3s linear infinite;
   border-radius: 2px;
   width: 0%;
   transition: width 1s linear;
+}
+
+@keyframes progressShift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
 }
 
 /* ---------- Gameplay Scene Layout ---------- */
