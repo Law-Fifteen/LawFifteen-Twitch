@@ -248,9 +248,11 @@ function setupScrollText(el) {
   el.classList.remove("scroll-text");
   void el.offsetWidth;
 
-  if (el.scrollWidth > el.clientWidth) {
-    const overflow = el.scrollWidth - el.clientWidth;
-    const scrollPx = overflow + 40;
+  const containerWidth = el.parentElement.clientWidth;
+  const textWidth = el.scrollWidth;
+
+  if (textWidth > containerWidth + 4) {
+    const scrollPx = textWidth - containerWidth + 30;
     const duration = Math.max(8, scrollPx / 25);
 
     el.style.setProperty("--scroll-distance", `-${scrollPx}px`);
