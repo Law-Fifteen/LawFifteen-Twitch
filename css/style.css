@@ -408,8 +408,8 @@ body {
 
 @keyframes marquee {
   0% { transform: translateX(0); }
-  12% { transform: translateX(0); }
-  88% { transform: translateX(var(--scroll-distance, -50%)); }
+  5% { transform: translateX(0); }
+  95% { transform: translateX(var(--scroll-distance, -50%)); }
   100% { transform: translateX(var(--scroll-distance, -50%)); }
 }
 
