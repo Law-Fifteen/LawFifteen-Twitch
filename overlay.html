@@ -82,8 +82,6 @@
 </head>
 <body>
 
-  <canvas id="particle-canvas"></canvas>
-
   <!-- Control Bar — click empty space to toggle -->
   <div id="control-bar">
     <div class="control-inner">
@@ -99,7 +97,6 @@
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="music" onchange="applyToggle('music', this.checked)"><span>Now Playing</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="camera" onchange="applyToggle('camera', this.checked)"><span>Camera</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="glow" onchange="applyToggle('glow', this.checked)"><span>Glow</span></label>
-        <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="sweep" onchange="applyToggle('sweep', this.checked)"><span>Sweep</span></label>
         <label class="ctrl-toggle"><input type="checkbox" checked data-toggle="progress" onchange="applyToggle('progress', this.checked)"><span>Progress</span></label>
       </div>
       <div class="control-divider"></div>
@@ -218,7 +215,6 @@
   <script src="config.js"></script>
   <script src="js/twitch-api.js"></script>
   <script src="js/lastfm-api.js"></script>
-  <script src="js/particles.js"></script>
   <script src="js/overlay.js"></script>
 </body>
 </html>

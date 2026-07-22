@@ -91,31 +91,24 @@ body {
   overflow: hidden;
 }
 
-/* Rotating color glow — 15px ring around the frame */
+/* Soft color glow halo around the frame */
 .camera-frame::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -10px;
   z-index: -1;
-  padding: 15px;
   background: conic-gradient(
     from 0deg,
-    #ff6b6b,
-    #74b9ff,
-    #a29bfe,
-    #ff6b6b,
-    #74b9ff,
-    #a29bfe,
-    #ff6b6b
+    var(--glow-c1, #ff6b6b),
+    var(--glow-c2, #74b9ff),
+    var(--glow-c3, #a29bfe),
+    var(--glow-c1, #ff6b6b),
+    var(--glow-c2, #74b9ff),
+    var(--glow-c3, #a29bfe),
+    var(--glow-c1, #ff6b6b)
   );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  filter: blur(10px);
-  opacity: 0.5;
-  animation: rotateGlow 4s linear infinite;
+  filter: blur(15px);
+  opacity: 0.4;
 }
 
 /* Inner mask to cut out the camera interior */
@@ -125,11 +118,6 @@ body {
   inset: 2px;
   background: var(--bg-void);
   z-index: -1;
-}
-
-@keyframes rotateGlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 .camera-frame.glow-off::before {
@@ -216,31 +204,28 @@ body {
   position: relative;
 }
 
-/* Softer rotating glow around Now Playing box */
+/* Softer glow halo around Now Playing box */
 .music-widget::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -10px;
   z-index: -1;
-  padding: 12px;
   background: conic-gradient(
-    from 0deg,
-    #ff9a9a,
-    #9ac4ff,
-    #c4b8ff,
-    #ff9a9a,
-    #9ac4ff,
-    #c4b8ff,
-    #ff9a9a
+    from 45deg,
+    var(--glow-c1, #ff9a9a),
+    var(--glow-c2, #9ac4ff),
+    var(--glow-c3, #c4b8ff),
+    var(--glow-c1, #ff9a9a),
+    var(--glow-c2, #9ac4ff),
+    var(--glow-c3, #c4b8ff),
+    var(--glow-c1, #ff9a9a)
   );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  filter: blur(10px);
+  filter: blur(15px);
   opacity: 0.2;
-  animation: rotateGlow 12s linear infinite;
+}
+
+.music-widget.glow-off::before {
+  display: none;
 }
 
 .music-widget .music-text {

@@ -43,7 +43,6 @@ let lastTrackImage = "";
 let trackStartTime = 0;
 let trackEstimatedDuration = 210000;
 let progressInterval = null;
-let sweepEnabled = true;
 let activeScene = "gameplay";
 
 const SCENE_DISPLAY = {
@@ -56,7 +55,7 @@ const SCENE_DISPLAY = {
 
 function initControlBar() {
   // Restore saved toggle states
-  ["music", "camera", "glow", "sweep", "subs", "follows", "progress"].forEach((feature) => {
+  ["music", "camera", "glow", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") {
       applyToggle(feature, false);
@@ -125,9 +124,9 @@ function switchScene(scene, save = true) {
 
 function applyPreset(name) {
   const presets = {
-    full: { music: true, camera: true, glow: true, sweep: true, subs: true, follows: true, progress: true },
-    minimal: { music: true, camera: true, glow: false, sweep: false, subs: false, follows: false, progress: true },
-    off: { music: false, camera: false, glow: false, sweep: false, subs: false, follows: false, progress: false },
+    full: { music: true, camera: true, glow: true, subs: true, follows: true, progress: true },
+    minimal: { music: true, camera: true, glow: false, subs: false, follows: false, progress: true },
+    off: { music: false, camera: false, glow: false, subs: false, follows: false, progress: false },
   };
 
   const preset = presets[name];
@@ -155,12 +154,9 @@ function applyToggle(feature, enabled) {
       });
       break;
     case "glow":
-      document.querySelectorAll(".camera-frame").forEach((el) => {
+      document.querySelectorAll(".camera-frame, .music-widget").forEach((el) => {
         el.classList.toggle("glow-off", !enabled);
       });
-      break;
-    case "sweep":
-      sweepEnabled = enabled;
       break;
     case "subs":
       document.querySelectorAll(".recent-subs").forEach((el) => {
@@ -226,16 +222,13 @@ async function pollMusic() {
       trackStartTime = Date.now();
       startProgressAnimation(track.title, track.artist, track.image);
 
-      if (sweepEnabled && hazeEffects?.triggerSweep) {
-        hazeEffects.triggerSweep();
-      }
-
       console.log("Now playing:", track.artist, "-", track.title);
     }
 
     if (!track.isNowPlaying) {
       stopProgressAnimation();
       updateAllMusicWidgets("No song playing.. Suggest one in the chat!", "Idle", "", false);
+      resetGlowColors();
     }
   } catch (e) {
     console.warn("Music poll error:", e);
@@ -245,6 +238,10 @@ async function pollMusic() {
 function startProgressAnimation(title, artist, imageUrl) {
   stopProgressAnimation();
   updateAllMusicWidgets(title, artist, imageUrl, true);
+
+  if (imageUrl) {
+    extractColorsFromImage(imageUrl);
+  }
 
   document.querySelectorAll(".song-progress").forEach((el) => {
     el.style.width = "0%";
@@ -306,6 +303,77 @@ function setupScrollText(el) {
 
 let lastScrollTitle = "";
 
+// ── Album Art Color Extraction ───────────────────────
+
+function extractColorsFromImage(imageUrl) {
+  if (!imageUrl) return;
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const size = 50;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.drawImage(img, 0, 0, size, size);
+      const data = ctx.getImageData(0, 0, size, size).data;
+
+      const colors = [];
+      const step = 4;
+      for (let y = 0; y < size; y += step) {
+        for (let x = 0; x < size; x += step) {
+          const i = (y * size + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          if (brightness < 30 || brightness > 225) continue;
+          const sat = Math.max(r, g, b) - Math.min(r, g, b);
+          if (sat < 30) continue;
+          colors.push([r, g, b]);
+        }
+      }
+
+      if (colors.length < 3) return;
+
+      colors.sort((a, b) => {
+        const satA = Math.max(...a) - Math.min(...a);
+        const satB = Math.max(...b) - Math.min(...b);
+        return satB - satA;
+      });
+
+      const picked = [];
+      const minDist = 60;
+      for (const c of colors) {
+        if (picked.length >= 3) break;
+        if (picked.every(p => {
+          const dr = p[0]-c[0], dg = p[1]-c[1], db = p[2]-c[2];
+          return Math.sqrt(dr*dr + dg*dg + db*db) > minDist;
+        })) {
+          picked.push(c);
+        }
+      }
+
+      while (picked.length < 3) picked.push(colors[picked.length]);
+
+      const hex = picked.map(c => `rgb(${c[0]},${c[1]},${c[2]})`);
+      const root = document.documentElement;
+      root.style.setProperty("--glow-c1", hex[0]);
+      root.style.setProperty("--glow-c2", hex[1]);
+      root.style.setProperty("--glow-c3", hex[2]);
+    } catch (e) {
+      console.warn("Color extraction failed:", e);
+    }
+  };
+  img.src = imageUrl;
+}
+
+function resetGlowColors() {
+  const root = document.documentElement;
+  root.style.setProperty("--glow-c1", "#ff6b6b");
+  root.style.setProperty("--glow-c2", "#74b9ff");
+  root.style.setProperty("--glow-c3", "#a29bfe");
+}
+
 function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
   const newTitle = title || "No song playing.. Suggest one in the chat!";
 
@@ -350,7 +418,6 @@ function init() {
   });
 
   initControlBar();
-  hazeEffects?.init();
 
   pollMusic();
   setInterval(pollMusic, CONFIG.refreshIntervals.music);
