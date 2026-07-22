@@ -393,12 +393,15 @@ function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
   });
 
   document.querySelectorAll(".album-art").forEach((el) => {
+    const wrap = el.closest(".album-art-wrap");
     if (imageUrl) {
       el.src = imageUrl;
       el.classList.add("loaded");
+      if (wrap) wrap.classList.add("loaded");
     } else {
       el.src = "";
       el.classList.remove("loaded");
+      if (wrap) wrap.classList.remove("loaded");
     }
   });
 
