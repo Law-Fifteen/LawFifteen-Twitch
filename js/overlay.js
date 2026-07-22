@@ -213,7 +213,7 @@ async function pollMusic() {
 
     if (!track.isNowPlaying) {
       stopProgressAnimation();
-      updateMusicWidget("No track playing.. recommend one in the chat!", "Idle", "", false);
+      updateMusicWidget("No song playing.. Suggest one in the chat!", "Idle", "", false);
     }
   } catch (e) {
     console.warn("Music poll error:", e);
