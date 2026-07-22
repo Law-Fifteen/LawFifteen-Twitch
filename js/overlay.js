@@ -1,6 +1,7 @@
 /**
  * Haze Overlay — Core Logic
  * Handles polling, rendering, effects, and inline control bar.
+ * All selectors are scoped to the active scene.
  */
 
 // ── Helpers ──────────────────────────────────────────
@@ -34,8 +35,8 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function setEventsList(containerId, items, icon) {
-  const el = document.getElementById(containerId);
+function setEventsList(selector, items, icon) {
+  const el = document.querySelector(selector);
   if (!el) return;
   if (items.length === 0) {
     el.innerHTML = '<div class="empty-state">No recent events</div>';
@@ -54,11 +55,27 @@ let trackStartTime = 0;
 let trackEstimatedDuration = 210000;
 let progressInterval = null;
 let sweepEnabled = true;
+let activeScene = "gameplay";
+
+// ── Active Scene Helpers ─────────────────────────────
+
+function getActiveSceneEl() {
+  return document.querySelector(".scene.active");
+}
+
+function queryActive(selector) {
+  const scene = getActiveSceneEl();
+  return scene ? scene.querySelector(selector) : null;
+}
+
+function queryActiveAll(selector) {
+  const scene = getActiveSceneEl();
+  return scene ? scene.querySelectorAll(selector) : [];
+}
 
 // ── Control Bar ──────────────────────────────────────
 
 function initControlBar() {
-  // Restore saved toggle states
   ["music", "camera", "bokeh", "sweep", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") {
@@ -68,34 +85,50 @@ function initControlBar() {
     }
   });
 
-  // Mark active scene button
-  const scene = getActiveScene();
-  document.querySelectorAll(".ctrl-btn[data-scene]").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.scene === scene);
-  });
+  const saved = localStorage.getItem("haze-scene");
+  if (saved && document.getElementById(`${saved}-scene`)) {
+    switchScene(saved);
+  }
 
-  // Show control bar briefly on load so user knows it's there
   const bar = document.getElementById("control-bar");
   if (bar) {
     bar.classList.add("visible");
     setTimeout(() => bar.classList.remove("visible"), 2500);
   }
-}
 
-function getActiveScene() {
-  if (document.getElementById("gameplay-scene")) return "gameplay";
-  if (document.getElementById("chatting-scene")) return "chatting";
-  if (document.getElementById("ultrawide-scene")) return "ultrawide";
-  return "gameplay";
+  document.addEventListener("click", (e) => {
+    const bar = document.getElementById("control-bar");
+    if (!bar) return;
+    if (bar.contains(e.target)) return;
+    bar.classList.toggle("visible");
+  });
 }
 
 function switchScene(scene) {
-  // In OBS, scene switching is done by toggling Browser Source visibility.
-  // This function highlights the active button and saves preference.
+  document.querySelectorAll(".scene").forEach((el) => {
+    el.classList.remove("active");
+  });
+  const target = document.getElementById(`${scene}-scene`);
+  if (target) target.classList.add("active");
+
   document.querySelectorAll(".ctrl-btn[data-scene]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.scene === scene);
   });
+
+  activeScene = scene;
   localStorage.setItem("haze-scene", scene);
+
+  // Re-apply saved toggles to the new scene
+  ["music", "camera", "bokeh", "progress"].forEach((feature) => {
+    const saved = localStorage.getItem(`haze-${feature}`);
+    if (saved === "false") applyToggle(feature, false);
+  });
+
+  // Re-run music setup for new scene
+  if (lastTrackTitle) {
+    startProgressAnimation(lastTrackTitle, lastTrackImage, "", true);
+  }
+
   console.log("Scene:", scene);
 }
 
@@ -121,10 +154,12 @@ function applyToggle(feature, enabled) {
 
   switch (feature) {
     case "music":
-      toggleElement("music-widget", enabled);
+      queryActiveAll(".music-widget").forEach((el) => {
+        el.style.display = enabled ? "" : "none";
+      });
       break;
     case "camera":
-      document.querySelectorAll(".camera-frame").forEach((el) => {
+      queryActiveAll(".camera-frame").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
@@ -144,22 +179,21 @@ function applyToggle(feature, enabled) {
       sweepEnabled = enabled;
       break;
     case "subs":
-      toggleElement("recent-subs", enabled);
+      queryActiveAll(".recent-subs").forEach((el) => {
+        el.style.display = enabled ? "" : "none";
+      });
       break;
     case "follows":
-      toggleElement("recent-follows", enabled);
+      queryActiveAll(".recent-follows").forEach((el) => {
+        el.style.display = enabled ? "" : "none";
+      });
       break;
     case "progress":
-      document.querySelectorAll(".progress-bar-track").forEach((el) => {
+      queryActiveAll(".progress-bar-track").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
   }
-}
-
-function toggleElement(id, show) {
-  const el = document.getElementById(id);
-  if (el) el.style.display = show ? "" : "none";
 }
 
 // ── Polling ──────────────────────────────────────────
@@ -170,7 +204,9 @@ async function pollFollowers() {
     const followers = await twitchAPI.getFollowers(CONFIG.maxRecentEvents);
     if (followers.length > 0 && JSON.stringify(followers) !== JSON.stringify(lastFollowers)) {
       lastFollowers = followers;
-      setEventsList("follows-list", followers, "\u2665");
+      document.querySelectorAll(".subs-list").forEach((el) => {
+        el.innerHTML = followers.map((e) => renderEventItem(e, "\u2665")).join("") || '<div class="empty-state">No recent events</div>';
+      });
     }
   } catch (e) {
     console.warn("Follower poll error:", e);
@@ -183,7 +219,9 @@ async function pollSubscribers() {
     const subs = await twitchAPI.getSubscribers(CONFIG.maxRecentEvents);
     if (subs.length > 0 && JSON.stringify(subs) !== JSON.stringify(lastSubscribers)) {
       lastSubscribers = subs;
-      setEventsList("subs-list", subs, "\u2605");
+      document.querySelectorAll(".subs-list").forEach((el) => {
+        el.innerHTML = subs.map((e) => renderEventItem(e, "\u2605")).join("") || '<div class="empty-state">No recent events</div>';
+      });
     }
   } catch (e) {
     console.warn("Subscriber poll error:", e);
@@ -213,7 +251,7 @@ async function pollMusic() {
 
     if (!track.isNowPlaying) {
       stopProgressAnimation();
-      updateMusicWidget("No song playing.. Suggest one in the chat!", "Idle", "", false);
+      updateAllMusicWidgets("No song playing.. Suggest one in the chat!", "Idle", "", false);
     }
   } catch (e) {
     console.warn("Music poll error:", e);
@@ -222,18 +260,19 @@ async function pollMusic() {
 
 function startProgressAnimation(title, artist, imageUrl) {
   stopProgressAnimation();
-  updateMusicWidget(title, artist, imageUrl, true);
+  updateAllMusicWidgets(title, artist, imageUrl, true);
 
-  const progressEl = document.getElementById("song-progress");
-  if (!progressEl) return;
-
-  progressEl.style.width = "0%";
-  progressEl.style.opacity = "1";
+  document.querySelectorAll(".song-progress").forEach((el) => {
+    el.style.width = "0%";
+    el.style.opacity = "1";
+  });
 
   progressInterval = setInterval(() => {
     const elapsed = Date.now() - trackStartTime;
     const pct = Math.min((elapsed / trackEstimatedDuration) * 100, 95);
-    progressEl.style.width = `${pct}%`;
+    document.querySelectorAll(".song-progress").forEach((el) => {
+      el.style.width = `${pct}%`;
+    });
   }, 1000);
 }
 
@@ -258,7 +297,7 @@ function setupScrollText(el) {
   if (textWidth <= containerWidth + 4) return;
 
   const scrollPx = textWidth - containerWidth + 20;
-  const speed = 80;
+  const speed = 40;
   const holdMs = 2000;
   const totalMs = (scrollPx / speed) * 1000;
 
@@ -269,7 +308,7 @@ function setupScrollText(el) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         el.style.transition = `transform ${totalMs}ms linear`;
-        el.style.transform = `translateX(-${scrollPx}px`;
+        el.style.transform = `translateX(-${scrollPx}px)`;
 
         el._marqueeTimeout = setTimeout(() => {
           el.style.transition = "none";
@@ -283,35 +322,41 @@ function setupScrollText(el) {
   runMarquee();
 }
 
-function updateMusicWidget(title, artist, imageUrl, isActive) {
-  const titleEl = document.getElementById("song-title");
-  const artistEl = document.getElementById("song-artist");
-  const progressEl = document.getElementById("song-progress");
-  const albumArtEl = document.getElementById("album-art");
+let lastScrollTitle = "";
 
-  if (titleEl) {
-    titleEl.textContent = title || "No track playing";
-    setupScrollText(titleEl);
-  }
+function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
+  const newTitle = title || "No song playing.. Suggest one in the chat!";
 
-  if (artistEl) {
-    artistEl.textContent = artist || "\u2014";
-    setupScrollText(artistEl);
-  }
-
-  if (albumArtEl) {
-    if (imageUrl) {
-      albumArtEl.src = imageUrl;
-      albumArtEl.classList.add("loaded");
-    } else {
-      albumArtEl.src = "";
-      albumArtEl.classList.remove("loaded");
+  document.querySelectorAll(".scene .song-title").forEach((el) => {
+    if (el.textContent !== newTitle) {
+      el.textContent = newTitle;
     }
-  }
+    if (newTitle !== lastScrollTitle) {
+      setupScrollText(el);
+    }
+  });
 
-  if (progressEl && !isActive) {
-    progressEl.style.width = "0%";
-    progressEl.style.opacity = "0";
+  lastScrollTitle = newTitle;
+
+  document.querySelectorAll(".scene .song-artist").forEach((el) => {
+    el.textContent = artist || "\u2014";
+  });
+
+  document.querySelectorAll(".scene .album-art").forEach((el) => {
+    if (imageUrl) {
+      el.src = imageUrl;
+      el.classList.add("loaded");
+    } else {
+      el.src = "";
+      el.classList.remove("loaded");
+    }
+  });
+
+  if (!isActive) {
+    document.querySelectorAll(".song-progress").forEach((el) => {
+      el.style.width = "0%";
+      el.style.opacity = "0";
+    });
   }
 }
 
@@ -331,17 +376,13 @@ function init() {
 
   hazeEffects?.init();
 
-  const isChatting = !!document.getElementById("chatting-scene");
-
   pollMusic();
   setInterval(pollMusic, CONFIG.refreshIntervals.music);
 
-  if (isChatting) {
-    pollFollowers();
-    pollSubscribers();
-    setInterval(pollFollowers, CONFIG.refreshIntervals.followers);
-    setInterval(pollSubscribers, CONFIG.refreshIntervals.subscribers);
-  }
+  pollFollowers();
+  pollSubscribers();
+  setInterval(pollFollowers, CONFIG.refreshIntervals.followers);
+  setInterval(pollSubscribers, CONFIG.refreshIntervals.subscribers);
 
   setTimeout(() => {
     document.querySelectorAll(".fade-in").forEach((el) => {

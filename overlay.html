@@ -15,7 +15,7 @@
       flex: 1;
       overflow: hidden;
     }
-    /* Ultrawide layout tweaks at 1920 */
+    /* Ultrawide layout */
     #ultrawide-scene .music-widget {
       position: absolute;
       top: 30px;
@@ -113,14 +113,12 @@
   </div>
 
   <!-- ═══════ GAMEPLAY SCENE ═══════ -->
-  <div id="gameplay-scene" class="scene">
-    <div class="camera-frame fade-in" id="camera">
+  <div id="gameplay-scene" class="scene active">
+    <div class="camera-frame fade-in">
       <div class="camera-glow-pulse"></div>
-      <div class="camera-inner">
-        <!-- OBS: Add your Video Capture Device source inside this frame -->
-      </div>
+      <div class="camera-inner"></div>
     </div>
-    <div class="music-widget fade-in" id="music-widget">
+    <div class="music-widget fade-in">
       <div class="music-text">
         <div class="now-playing-label">
           <span class="eq-icon">
@@ -130,27 +128,25 @@
           </span>
           Now Playing
         </div>
-        <div class="song-title" id="song-title">No song playing.. Suggest one in the chat!</div>
-        <div class="song-artist" id="song-artist">—</div>
+        <div class="song-title">No song playing.. Suggest one in the chat!</div>
+        <div class="song-artist">&mdash;</div>
         <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="song-progress"></div>
+          <div class="progress-bar-fill song-progress"></div>
         </div>
       </div>
       <div class="album-art-wrap">
-        <img class="album-art" id="album-art" src="" alt="Album Art">
+        <img class="album-art" src="" alt="Album Art">
       </div>
     </div>
   </div>
 
   <!-- ═══════ JUST CHATTING SCENE ═══════ -->
   <div id="chatting-scene" class="scene grid-scene">
-    <div class="camera-frame fade-in" id="camera">
+    <div class="camera-frame fade-in">
       <div class="camera-glow-pulse"></div>
-      <div class="camera-inner">
-        <!-- OBS: Add your Video Capture Device source inside this frame -->
-      </div>
+      <div class="camera-inner"></div>
     </div>
-    <div class="music-widget fade-in" id="music-widget">
+    <div class="music-widget fade-in">
       <div class="music-text">
         <div class="now-playing-label">
           <span class="eq-icon">
@@ -160,26 +156,26 @@
           </span>
           Now Playing
         </div>
-        <div class="song-title" id="song-title">No song playing.. Suggest one in the chat!</div>
-        <div class="song-artist" id="song-artist">—</div>
+        <div class="song-title">No song playing.. Suggest one in the chat!</div>
+        <div class="song-artist">&mdash;</div>
         <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="song-progress"></div>
+          <div class="progress-bar-fill song-progress"></div>
         </div>
       </div>
       <div class="album-art-wrap">
-        <img class="album-art" id="album-art" src="" alt="Album Art">
+        <img class="album-art" src="" alt="Album Art">
       </div>
     </div>
     <div class="right-panel">
-      <div class="events-card fade-in" id="recent-subs">
+      <div class="events-card fade-in recent-subs">
         <div class="section-label">Recent Subscriber</div>
-        <div class="events-list" id="subs-list">
+        <div class="events-list subs-list">
           <div class="empty-state">Waiting for data...</div>
         </div>
       </div>
-      <div class="events-card fade-in" id="recent-follows">
+      <div class="events-card fade-in recent-follows">
         <div class="section-label">Recent Followers</div>
-        <div class="events-list" id="follows-list">
+        <div class="events-list follows-list">
           <div class="empty-state">Waiting for data...</div>
         </div>
       </div>
@@ -188,7 +184,7 @@
 
   <!-- ═══════ ULTRAWIDE SCENE ═══════ -->
   <div id="ultrawide-scene" class="scene">
-    <div class="music-widget fade-in" id="music-widget">
+    <div class="music-widget fade-in">
       <div class="music-text">
         <div class="now-playing-label">
           <span class="eq-icon">
@@ -198,14 +194,14 @@
           </span>
           Now Playing
         </div>
-        <div class="song-title" id="song-title">No song playing.. Suggest one in the chat!</div>
-        <div class="song-artist" id="song-artist">—</div>
+        <div class="song-title">No song playing.. Suggest one in the chat!</div>
+        <div class="song-artist">&mdash;</div>
         <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="song-progress"></div>
+          <div class="progress-bar-fill song-progress"></div>
         </div>
       </div>
       <div class="album-art-wrap">
-        <img class="album-art" id="album-art" src="" alt="Album Art">
+        <img class="album-art" src="" alt="Album Art">
       </div>
     </div>
     <div class="chat-box fade-in">
@@ -214,15 +210,12 @@
         <iframe id="chat-embed" src="" allowfullscreen></iframe>
       </div>
     </div>
-    <div class="camera-frame fade-in" id="camera">
+    <div class="camera-frame fade-in">
       <div class="camera-glow-pulse"></div>
-      <div class="camera-inner">
-        <!-- OBS: Add your Video Capture Device source inside this frame -->
-      </div>
+      <div class="camera-inner"></div>
     </div>
   </div>
 
-  <!-- TwitchAlerts injects here -->
   <div id="alert-box"></div>
 
   <script src="config.js"></script>
