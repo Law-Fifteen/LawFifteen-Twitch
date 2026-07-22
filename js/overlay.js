@@ -1,7 +1,6 @@
 /**
  * Haze Overlay — Core Logic
- * Handles polling, rendering, effects, and inline control bar.
- * All selectors are scoped to the active scene.
+ * Scene switching, toggles, music, and control bar.
  */
 
 // ── Helpers ──────────────────────────────────────────
@@ -35,16 +34,6 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function setEventsList(selector, items, icon) {
-  const el = document.querySelector(selector);
-  if (!el) return;
-  if (items.length === 0) {
-    el.innerHTML = '<div class="empty-state">No recent events</div>';
-    return;
-  }
-  el.innerHTML = items.map((e) => renderEventItem(e, icon)).join("");
-}
-
 // ── State ────────────────────────────────────────────
 
 let lastFollowers = [];
@@ -57,25 +46,16 @@ let progressInterval = null;
 let sweepEnabled = true;
 let activeScene = "gameplay";
 
-// ── Active Scene Helpers ─────────────────────────────
-
-function getActiveSceneEl() {
-  return document.querySelector(".scene.active");
-}
-
-function queryActive(selector) {
-  const scene = getActiveSceneEl();
-  return scene ? scene.querySelector(selector) : null;
-}
-
-function queryActiveAll(selector) {
-  const scene = getActiveSceneEl();
-  return scene ? scene.querySelectorAll(selector) : [];
-}
+const SCENE_DISPLAY = {
+  gameplay: "flex",
+  chatting: "grid",
+  ultrawide: "block",
+};
 
 // ── Control Bar ──────────────────────────────────────
 
 function initControlBar() {
+  // Restore saved toggle states
   ["music", "camera", "bokeh", "sweep", "subs", "follows", "progress"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") {
@@ -85,17 +65,22 @@ function initControlBar() {
     }
   });
 
+  // Restore saved scene or default to gameplay
   const saved = localStorage.getItem("haze-scene");
   if (saved && document.getElementById(`${saved}-scene`)) {
-    switchScene(saved);
+    switchScene(saved, false);
+  } else {
+    switchScene("gameplay", false);
   }
 
+  // Show control bar briefly on load
   const bar = document.getElementById("control-bar");
   if (bar) {
     bar.classList.add("visible");
     setTimeout(() => bar.classList.remove("visible"), 2500);
   }
 
+  // Click empty space to toggle control bar
   document.addEventListener("click", (e) => {
     const bar = document.getElementById("control-bar");
     if (!bar) return;
@@ -104,22 +89,28 @@ function initControlBar() {
   });
 }
 
-function switchScene(scene) {
-  document.querySelectorAll(".scene").forEach((el) => {
-    el.classList.remove("active");
+function switchScene(scene, save = true) {
+  // Hide all scenes, show the target
+  ["gameplay", "chatting", "ultrawide"].forEach((name) => {
+    const el = document.getElementById(`${name}-scene`);
+    if (!el) return;
+    if (name === scene) {
+      el.style.display = SCENE_DISPLAY[name] || "block";
+    } else {
+      el.style.display = "none";
+    }
   });
-  const target = document.getElementById(`${scene}-scene`);
-  if (target) target.classList.add("active");
 
+  // Update button states
   document.querySelectorAll(".ctrl-btn[data-scene]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.scene === scene);
   });
 
   activeScene = scene;
-  localStorage.setItem("haze-scene", scene);
+  if (save) localStorage.setItem("haze-scene", scene);
 
-  // Re-apply saved toggles to the new scene
-  ["music", "camera", "bokeh", "progress"].forEach((feature) => {
+  // Re-apply saved toggles
+  ["music", "camera", "bokeh", "progress", "subs", "follows"].forEach((feature) => {
     const saved = localStorage.getItem(`haze-${feature}`);
     if (saved === "false") applyToggle(feature, false);
   });
@@ -154,12 +145,12 @@ function applyToggle(feature, enabled) {
 
   switch (feature) {
     case "music":
-      queryActiveAll(".music-widget").forEach((el) => {
+      document.querySelectorAll(".music-widget").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
     case "camera":
-      queryActiveAll(".camera-frame").forEach((el) => {
+      document.querySelectorAll(".camera-frame").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
@@ -179,17 +170,17 @@ function applyToggle(feature, enabled) {
       sweepEnabled = enabled;
       break;
     case "subs":
-      queryActiveAll(".recent-subs").forEach((el) => {
+      document.querySelectorAll(".recent-subs").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
     case "follows":
-      queryActiveAll(".recent-follows").forEach((el) => {
+      document.querySelectorAll(".recent-follows").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
     case "progress":
-      queryActiveAll(".progress-bar-track").forEach((el) => {
+      document.querySelectorAll(".progress-bar-track").forEach((el) => {
         el.style.display = enabled ? "" : "none";
       });
       break;
@@ -199,12 +190,12 @@ function applyToggle(feature, enabled) {
 // ── Polling ──────────────────────────────────────────
 
 async function pollFollowers() {
-  if (!CONFIG.twitch.clientId || !CONFIG.twitch.oauthToken) return;
+  if (!CONFIG.twitch?.clientId || !CONFIG.twitch?.oauthToken) return;
   try {
     const followers = await twitchAPI.getFollowers(CONFIG.maxRecentEvents);
     if (followers.length > 0 && JSON.stringify(followers) !== JSON.stringify(lastFollowers)) {
       lastFollowers = followers;
-      document.querySelectorAll(".subs-list").forEach((el) => {
+      document.querySelectorAll(".follows-list").forEach((el) => {
         el.innerHTML = followers.map((e) => renderEventItem(e, "\u2665")).join("") || '<div class="empty-state">No recent events</div>';
       });
     }
@@ -214,7 +205,7 @@ async function pollFollowers() {
 }
 
 async function pollSubscribers() {
-  if (!CONFIG.twitch.clientId || !CONFIG.twitch.oauthToken) return;
+  if (!CONFIG.twitch?.clientId || !CONFIG.twitch?.oauthToken) return;
   try {
     const subs = await twitchAPI.getSubscribers(CONFIG.maxRecentEvents);
     if (subs.length > 0 && JSON.stringify(subs) !== JSON.stringify(lastSubscribers)) {
@@ -231,7 +222,7 @@ async function pollSubscribers() {
 // ── Music Widget (Last.fm integration) ───────────────
 
 async function pollMusic() {
-  if (!CONFIG.lastfm.apiKey || !CONFIG.lastfm.username) return;
+  if (!CONFIG.lastfm?.apiKey || !CONFIG.lastfm?.username) return;
   try {
     const track = await lastfmAPI.getNowPlaying();
     if (!track) return;
@@ -286,9 +277,7 @@ function stopProgressAnimation() {
 function setupScrollText(el) {
   el.classList.remove("scroll-text");
   el.style.transform = "";
-  if (el._marqueeRAF) cancelAnimationFrame(el._marqueeRAF);
   if (el._marqueeTimeout) clearTimeout(el._marqueeTimeout);
-  el._marqueeRAF = null;
   el._marqueeTimeout = null;
 
   const containerWidth = el.parentElement.clientWidth;
@@ -327,7 +316,7 @@ let lastScrollTitle = "";
 function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
   const newTitle = title || "No song playing.. Suggest one in the chat!";
 
-  document.querySelectorAll(".scene .song-title").forEach((el) => {
+  document.querySelectorAll(".song-title").forEach((el) => {
     if (el.textContent !== newTitle) {
       el.textContent = newTitle;
     }
@@ -338,11 +327,11 @@ function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
 
   lastScrollTitle = newTitle;
 
-  document.querySelectorAll(".scene .song-artist").forEach((el) => {
+  document.querySelectorAll(".song-artist").forEach((el) => {
     el.textContent = artist || "\u2014";
   });
 
-  document.querySelectorAll(".scene .album-art").forEach((el) => {
+  document.querySelectorAll(".album-art").forEach((el) => {
     if (imageUrl) {
       el.src = imageUrl;
       el.classList.add("loaded");
@@ -360,20 +349,14 @@ function updateAllMusicWidgets(title, artist, imageUrl, isActive) {
   }
 }
 
-// ── Panel Visibility ─────────────────────────────────
-
-function markPanelsVisible() {
-  document.querySelectorAll(".panel, .events-card, .music-widget, .camera-frame").forEach((el) => {
-    el.classList.add("visible");
-  });
-}
-
 // ── Init ─────────────────────────────────────────────
 
 function init() {
-  markPanelsVisible();
-  initControlBar();
+  document.querySelectorAll(".panel, .events-card, .music-widget, .camera-frame").forEach((el) => {
+    el.classList.add("visible");
+  });
 
+  initControlBar();
   hazeEffects?.init();
 
   pollMusic();
