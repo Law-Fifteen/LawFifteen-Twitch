@@ -246,19 +246,41 @@ function stopProgressAnimation() {
 
 function setupScrollText(el) {
   el.classList.remove("scroll-text");
-  void el.offsetWidth;
+  el.style.transform = "";
+  if (el._marqueeRAF) cancelAnimationFrame(el._marqueeRAF);
+  if (el._marqueeTimeout) clearTimeout(el._marqueeTimeout);
+  el._marqueeRAF = null;
+  el._marqueeTimeout = null;
 
   const containerWidth = el.parentElement.clientWidth;
   const textWidth = el.scrollWidth;
 
-  if (textWidth > containerWidth + 4) {
-    const scrollPx = textWidth - containerWidth + 30;
-    const duration = Math.max(15, scrollPx / 10);
+  if (textWidth <= containerWidth + 4) return;
 
-    el.style.setProperty("--scroll-distance", `-${scrollPx}px`);
-    el.style.setProperty("--scroll-duration", `${duration}s`);
-    el.classList.add("scroll-text");
+  const scrollPx = textWidth - containerWidth + 20;
+  const speed = 80;
+  const holdMs = 2000;
+  const totalMs = (scrollPx / speed) * 1000;
+
+  function runMarquee() {
+    el.style.transition = "none";
+    el.style.transform = "translateX(0)";
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = `transform ${totalMs}ms linear`;
+        el.style.transform = `translateX(-${scrollPx}px`;
+
+        el._marqueeTimeout = setTimeout(() => {
+          el.style.transition = "none";
+          el.style.transform = "translateX(0)";
+          el._marqueeTimeout = setTimeout(runMarquee, 300);
+        }, totalMs + holdMs);
+      });
+    });
   }
+
+  runMarquee();
 }
 
 function updateMusicWidget(title, artist, imageUrl, isActive) {
