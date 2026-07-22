@@ -253,7 +253,7 @@ function setupScrollText(el) {
 
   if (textWidth > containerWidth + 4) {
     const scrollPx = textWidth - containerWidth + 30;
-    const duration = Math.max(8, scrollPx / 25);
+    const duration = Math.max(12, scrollPx / 20);
 
     el.style.setProperty("--scroll-distance", `-${scrollPx}px`);
     el.style.setProperty("--scroll-duration", `${duration}s`);

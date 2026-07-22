@@ -392,7 +392,7 @@ body {
 }
 
 .song-title.scroll-text {
-  animation: marquee var(--scroll-duration, 12s) linear infinite;
+  animation: marquee var(--scroll-duration, 16s) linear infinite;
 }
 
 .song-artist {
@@ -403,7 +403,7 @@ body {
 }
 
 .song-artist.scroll-text {
-  animation: marquee var(--scroll-duration, 10s) linear infinite;
+  animation: marquee var(--scroll-duration, 14s) linear infinite;
 }
 
 @keyframes marquee {
